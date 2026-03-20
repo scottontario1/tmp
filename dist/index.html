@@ -3,31 +3,204 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloudflare App</title>
+  <title>Cloudflare Manager</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <main>
-    <h1>Cloudflare Pages App</h1>
+  <!-- Sidebar (desktop) / Top bar (mobile) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg class="brand-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M42 38c4.4 0 8-3.6 8-8s-3.6-8-8-8c-.3 0-.6 0-.9.1C39.8 18.8 36.2 16 32 16c-5.5 0-10 4.5-10 10 0 .3 0 .7.1 1C18.8 27.5 16 30.4 16 34c0 4.4 3.6 8 8 8h18z" fill="currentColor"/>
+      </svg>
+      <span class="brand-name">CF Manager</span>
+    </div>
 
-    <section id="items-section">
-      <h2>Items (D1 + KV cache)</h2>
-      <form id="add-form">
-        <input type="text" id="item-name" placeholder="Item name" required />
-        <button type="submit">Add</button>
-      </form>
-      <ul id="items-list">Loading…</ul>
-    </section>
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" data-screen="kv" aria-label="KV Store screen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="3" width="8" height="8" rx="1"/>
+          <rect x="13" y="3" width="8" height="8" rx="1"/>
+          <rect x="3" y="13" width="8" height="8" rx="1"/>
+          <rect x="13" y="13" width="8" height="8" rx="1"/>
+        </svg>
+        <span>KV Store</span>
+      </button>
+      <button class="nav-btn" data-screen="r2" aria-label="R2 Storage screen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span>R2 Storage</span>
+      </button>
+    </nav>
+  </aside>
 
-    <section id="upload-section">
-      <h2>File Upload (R2)</h2>
-      <form id="upload-form">
-        <input type="file" id="file-input" required />
-        <button type="submit">Upload</button>
-      </form>
-      <p id="upload-result"></p>
-    </section>
-  </main>
+  <!-- Main content -->
+  <div class="layout">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="brand-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M42 38c4.4 0 8-3.6 8-8s-3.6-8-8-8c-.3 0-.6 0-.9.1C39.8 18.8 36.2 16 32 16c-5.5 0-10 4.5-10 10 0 .3 0 .7.1 1C18.8 27.5 16 30.4 16 34c0 4.4 3.6 8 8 8h18z" fill="currentColor"/>
+        </svg>
+        <span class="brand-name">CF Manager</span>
+      </div>
+      <!-- Mobile tab bar inside header -->
+      <nav class="mobile-tabs" role="tablist">
+        <button class="tab-btn active" data-screen="kv" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="3" width="8" height="8" rx="1"/>
+            <rect x="13" y="3" width="8" height="8" rx="1"/>
+            <rect x="3" y="13" width="8" height="8" rx="1"/>
+            <rect x="13" y="13" width="8" height="8" rx="1"/>
+          </svg>
+          KV Store
+        </button>
+        <button class="tab-btn" data-screen="r2" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          R2 Storage
+        </button>
+      </nav>
+    </header>
+
+    <main class="main">
+      <!-- ── KV Store Screen ───────────────────────────── -->
+      <section id="screen-kv" class="screen active">
+        <div class="screen-header">
+          <h1>KV Store</h1>
+          <p class="screen-desc">Set, inspect, and delete key-value pairs in Cloudflare KV.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Set a value</h2>
+          <form id="kv-form" class="kv-form">
+            <div class="field-row">
+              <div class="field">
+                <label for="kv-key">Key</label>
+                <input type="text" id="kv-key" placeholder="my-key" required autocomplete="off" spellcheck="false" />
+              </div>
+              <div class="field">
+                <label for="kv-ttl">TTL (seconds) <span class="optional">optional</span></label>
+                <input type="number" id="kv-ttl" placeholder="3600" min="60" autocomplete="off" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="kv-value">Value</label>
+              <textarea id="kv-value" placeholder="your value here…" rows="3" required spellcheck="false"></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title-row">
+            <h2 class="card-title">All keys</h2>
+            <button class="btn btn-ghost btn-sm" id="kv-refresh">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.5 15A9 9 0 1 1 12 3a9 9 0 0 1 6.36 2.64L23 10"/>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          <div id="kv-table-wrap" class="table-wrap">
+            <table class="data-table" id="kv-table">
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Expiration</th>
+                  <th class="col-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="kv-tbody">
+                <tr class="empty-row"><td colspan="3">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- KV Value inspector modal -->
+        <div class="modal-overlay" id="kv-modal" hidden>
+          <div class="modal">
+            <div class="modal-header">
+              <h3 id="kv-modal-key" class="mono"></h3>
+              <button class="modal-close" id="kv-modal-close" aria-label="Close">&times;</button>
+            </div>
+            <pre id="kv-modal-value" class="modal-value"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── R2 Storage Screen ─────────────────────────── -->
+      <section id="screen-r2" class="screen">
+        <div class="screen-header">
+          <h1>R2 Storage</h1>
+          <p class="screen-desc">Upload, download, and delete files in Cloudflare R2.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Upload a file</h2>
+          <form id="upload-form">
+            <label class="drop-zone" id="drop-zone" for="file-input">
+              <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span class="drop-text">Drag &amp; drop a file, or <span class="drop-link">browse</span></span>
+              <span class="drop-name" id="drop-name"></span>
+              <input type="file" id="file-input" hidden />
+            </label>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="upload-btn">Upload</button>
+            </div>
+            <div class="progress-wrap" id="progress-wrap" hidden>
+              <div class="progress-bar" id="progress-bar"></div>
+              <span class="progress-label" id="progress-label">Uploading…</span>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title-row">
+            <h2 class="card-title">Files</h2>
+            <button class="btn btn-ghost btn-sm" id="r2-refresh">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.5 15A9 9 0 1 1 12 3a9 9 0 0 1 6.36 2.64L23 10"/>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          <div id="r2-table-wrap" class="table-wrap">
+            <table class="data-table" id="r2-table">
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Size</th>
+                  <th>Uploaded</th>
+                  <th class="col-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="r2-tbody">
+                <tr class="empty-row"><td colspan="4">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
   <script src="/app.js"></script>
 </body>
