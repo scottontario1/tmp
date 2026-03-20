@@ -316,7 +316,88 @@ function jsonAttr(val) {
   return JSON.stringify(val);
 }
 
+// ── D1 Database ───────────────────────────────────────────────
+
+const d1Tbody = document.getElementById("d1-tbody");
+
+async function loadD1() {
+  d1Tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Loading…</td></tr>`;
+  try {
+    const res = await fetch("/api/items");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { items } = await res.json();
+
+    if (!items.length) {
+      d1Tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No items yet. Add one above.</td></tr>`;
+      return;
+    }
+
+    d1Tbody.innerHTML = items
+      .map((item) => `
+        <tr>
+          <td class="mono muted">${escHtml(String(item.id))}</td>
+          <td>${escHtml(item.name)}</td>
+          <td class="mono muted">${item.data ? escHtml(truncate(item.data)) : '<span class="muted">—</span>'}</td>
+          <td class="muted">${formatDate(item.created_at)}</td>
+          <td class="col-actions">
+            <div class="actions-cell">
+              <button class="btn btn-danger btn-sm"
+                onclick="deleteItem(${item.id})">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>`)
+      .join("");
+  } catch {
+    d1Tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Error loading items.</td></tr>`;
+    toast("Failed to load D1 items", "error");
+  }
+}
+
+async function deleteItem(id) {
+  try {
+    const res = await fetch(`/api/items/${id}`, { method: "DELETE" });
+    if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
+    toast(`Deleted item #${id}`);
+    loadD1();
+  } catch {
+    toast("Failed to delete item", "error");
+  }
+}
+
+document.getElementById("d1-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("d1-name").value.trim();
+  const dataRaw = document.getElementById("d1-data").value.trim();
+
+  let data = null;
+  if (dataRaw) {
+    try { data = JSON.parse(dataRaw); } catch {
+      toast("Data must be valid JSON", "error");
+      return;
+    }
+  }
+
+  try {
+    const res = await fetch("/api/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, data }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    toast(`Inserted "${name}"`);
+    e.target.reset();
+    loadD1();
+  } catch {
+    toast("Failed to insert item", "error");
+  }
+});
+
+document.getElementById("d1-refresh").addEventListener("click", loadD1);
+
 // ── Init ──────────────────────────────────────────────────────
 
 loadKV();
 loadR2();
+loadD1();
