@@ -3,25 +3,15 @@ compatibility_date = "2024-01-01"
 pages_build_output_dir = "dist"
 
 # KV Namespaces (key-value store)
-# Create with: wrangler kv:namespace create CACHE
 [[kv_namespaces]]
 binding = "CACHE"
-id = "YOUR_KV_NAMESPACE_ID"
-preview_id = "YOUR_KV_PREVIEW_NAMESPACE_ID"
-
-# R2 Buckets (object/file storage)
-# Create with: wrangler r2 bucket create my-app-storage
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "my-app-storage"
-preview_bucket_name = "my-app-storage-preview"
+id = "401adb901edc41b1b2b23b7132bd878b"
 
 # D1 Databases (SQLite)
-# Create with: wrangler d1 create my-app-db
 [[d1_databases]]
 binding = "DB"
-database_name = "my-app-db"
-database_id = "YOUR_D1_DATABASE_ID"
+database_name = "tmpd1"
+database_id = "124dd7f5-e2b1-4b3c-abac-e8f77f1462c6"
 
 [vars]
 APP_ENV = "production"
